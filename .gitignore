@@ -1,0 +1,9 @@
+.vscode/
+
+# Ignore virtual environment folder
+Product_Review_Analysis/
+
+# Ignore other Python related files
+__pycache__/
+*.py[cod]
+*.ipynb_checkpoints/
