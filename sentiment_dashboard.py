@@ -1,62 +1,65 @@
 import streamlit as st
-import pandas as pd
 import joblib
 import matplotlib.pyplot as plt
+import numpy as np
 
 # Load the trained model and vectorizer
-model = joblib.load('sentiment_model.pkl')
-# If you saved your vectorizer, load it too
-# vectorizer = joblib.load('vectorizer.pkl')
-
-# Sample data for demonstration (replace this with your actual data)
-data = pd.DataFrame({
-    'review_headline': ['Great product!', 'Not what I expected.', 'Loved it!', 'Terrible service.'],
-    'review_body': ['I love it.', 'It was okay.', 'Best purchase ever!', 'I will not buy again.'],
-    'sentiment': [2, 0, 2, 0]  # Use 2 for positive, 0 for negative, etc.
-})
+model = joblib.load(r"C:\Users\USER\Downloads\Sentiment Analysis for Product Reviews\sentiment_model.pkl")
+tfidf_vectorizer = joblib.load(r"C:\Users\USER\Downloads\Sentiment Analysis for Product Reviews\vectorizer.pkl")
 
 # Function to predict sentiment
-def predict_sentiment(review_headline, review_body):
-    input_data = pd.DataFrame([[review_headline + ' ' + review_body]], columns=['text'])
-    # Vectorization can be done here if needed
-    # X_vectorized = vectorizer.transform(input_data)
-    sentiment = model.predict(input_data)[0]
-    sentiment_label = {0: "negative", 1: "neutral", 2: "positive"}
-    return sentiment_label[sentiment]
+def predict_sentiment(review_text):
+    review_vectorized = tfidf_vectorizer.transform([review_text])
+    sentiment = model.predict(review_vectorized)
+    return "positive" if sentiment[0] == 1 else "negative"
 
-# Streamlit UI
-st.title("Sentiment Analysis Dashboard")
-st.write("Analyze customer reviews and visualize sentiment.")
+# Streamlit App UI
+st.title("Sentiment Analysis for Product Reviews")
 
-# Input for user review
-st.subheader("Input Your Review")
-review_headline = st.text_input("Review Headline")
-review_body = st.text_area("Review Body")
+# Text input for user to enter a review
+review_input = st.text_area("Enter a product review:", "")
+
 if st.button("Predict Sentiment"):
-    sentiment = predict_sentiment(review_headline, review_body)
-    st.success(f"The predicted sentiment is: {sentiment}")
+    if review_input:
+        # Predict the sentiment
+        sentiment_result = predict_sentiment(review_input)
+        
+        # Display the result
+        st.write(f"Sentiment of the review is **{sentiment_result}**")
+    else:
+        st.write("Please enter a review text.")
 
-# Display sentiment distribution
+# Visualization Section
 st.subheader("Sentiment Distribution")
-sentiment_counts = data['sentiment'].value_counts()
-sentiment_counts.index = sentiment_counts.index.map({0: "negative", 1: "neutral", 2: "positive"})
 
-# Bar chart
-plt.figure(figsize=(10, 5))
-plt.bar(sentiment_counts.index, sentiment_counts.values, color=['red', 'gray', 'green'])
-plt.xlabel("Sentiment")
-plt.ylabel("Count")
-plt.title("Sentiment Distribution")
-st.pyplot(plt)
+# Example: Show a simple pie chart of sentiment distribution
+# You can replace this with real data if available
+labels = ['Positive', 'Negative']
+sizes = [60, 40]  # Example distribution percentages
+colors = ['#00FF00', '#FF0000']
+explode = (0.1, 0)  # explode 1st slice (Positive)
 
-# Provide insights
-st.subheader("Business Insights and Recommendations")
-st.write("""
-- **Negative Feedback**: Highlight pain points from negative reviews and consider addressing them in product updates or customer support strategies.
-- **Positive Feedback**: Identify strengths and leverage them in marketing campaigns.
-- **Neutral Reviews**: Look for opportunities to convert neutral feedback into positive by enhancing customer experience.
-""")
+fig1, ax1 = plt.subplots()
+ax1.pie(sizes, explode=explode, labels=labels, colors=colors, autopct='%1.1f%%', shadow=True, startangle=140)
+ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
 
-# Run the app
-if __name__ == "__main__":
-    st.run()
+st.pyplot(fig1)
+
+st.subheader("Sentiment Trends Over Time (Example)")
+
+# Example trend over time (replace with actual data if available)
+days = np.arange(1, 11)
+positive_sentiments = np.random.randint(30, 70, size=10)
+negative_sentiments = 100 - positive_sentiments
+
+fig2, ax2 = plt.subplots()
+ax2.plot(days, positive_sentiments, label='Positive Sentiment', marker='o', color='#00FF00')
+ax2.plot(days, negative_sentiments, label='Negative Sentiment', marker='x', color='#FF0000')
+
+ax2.set_xlabel('Day')
+ax2.set_ylabel('Sentiment Percentage')
+ax2.set_title('Sentiment Trends Over Time')
+ax2.legend()
+
+st.pyplot(fig2)
+
